@@ -15,13 +15,6 @@ will be helpful, but the template strives to be self-explanatory.
 
 The codebase is installed using [git](https://git-scm.com/) and [yarn](https://yarnpkg.com/). This tutorial assumes you have installed yarn globally prior to installing it within the subdirectories. For the most recent version and how to install yarn, please refer to [yarn](https://yarnpkg.com/) documentation and installation guides. 
 
-```bash
-# Clone the repository
-git clone https://github.com/substrate-developer-hub/bc-client.git
-cd bc-client
-yarn install
-```
-
 ## Usage
 
 You can start the template in development mode to connect to a locally running node

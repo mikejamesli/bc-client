@@ -5,17 +5,21 @@
   "author": "Parity Technologies <admin@parity.io>",
   "license": "Unlicense",
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "start": "npm run watch:css && react-app-rewired start",
+    "build": "npm run build:css && react-app-rewired build",
     "test": "CI=true react-app-rewired test --env=jsdom",
     "eject": "react-app-rewired eject",
     "lint": "eslint src/**/*.js",
     "lint:ci": "eslint src/**/*.js --max-warnings=0",
     "lint:fix": "eslint --fix src/**/*.js",
     "predeploy": "yarn build",
-    "deploy": "gh-pages -d build -m '[ci skip] Updates'"
+    "deploy": "gh-pages -d build -m '[ci skip] Updates'",
+    "build:css": "postcss src/styles/tailwind.css -o src/styles/index.css",
+    "watch:css": "postcss src/styles/tailwind.css -o src/styles/index.css"
   },
   "dependencies": {
+    "@headlessui/react": "^1.2.0",
+    "@heroicons/react": "^1.0.1",
     "@polkadot/api": "^3.9.3",
     "@polkadot/extension-dapp": "^0.37.1",
     "@polkadot/keyring": "^5.6.3",
@@ -25,6 +29,9 @@
     "@polkadot/ui-settings": "^0.69.1",
     "@polkadot/util": "^5.6.3",
     "@polkadot/util-crypto": "^5.6.3",
+    "@reach/router": "^1.3.3",
+    "@tailwindcss/ui": "^0.1.3",
+    "postcss-cli": "^7.1.0",
     "prop-types": "^15.7.2",
     "query-string": "^6.13.5",
     "react": "^16.14.0",
@@ -32,7 +39,8 @@
     "react-dom": "^16.14.0",
     "react-scripts": "^4.0.2",
     "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^2.0.3"
+    "semantic-ui-react": "^2.0.3",
+    "tailwindcss": "^1.2.0"
   },
   "devDependencies": {
     "eslint": "^7.20.0",
@@ -71,10 +79,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "homepage": "https://substrate-developer-hub.github.io/bc-client",
-  "bugs": {
-    "url": "https://github.com/substrate-developer-hub/bc-client/issues"
   },
   "keywords": [
     "substrate",
