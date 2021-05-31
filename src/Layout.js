@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Router, Link, Redirect } from '@reach/router'
 import Home from './Home'
-import Test from './Test'
+import Home2 from './Home2'
+import Home3 from './Home3'
 
 function Layout() {
   return (
@@ -9,7 +10,8 @@ function Layout() {
         <div>
             <Router style={{ height: '100%' }}>
             <Home path="/" />
-            <Test path="/test" />
+            <Home2 path="/home2" />
+            <Home3 path="/home3" />
             </Router>
         </div>
         </>

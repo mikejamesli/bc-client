@@ -3,13 +3,13 @@ const defaultTheme = require("tailwindcss/defaultTheme");
 
 module.exports = {
   theme: {
-    backgroundColor: theme => ({
-      bc: '#191e2f',
-    }),
     extend: {
-      colors: {
-        zero: "#080117",
+      maxWidth: {
+        '8xl': '100rem',
       },
+      backgroundColor: theme => ({
+        bc: '#191e2f',
+      }),
       fontFamily: {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans]
       }

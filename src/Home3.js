@@ -12,7 +12,7 @@ import {
   StarIcon,
   ThumbUpIcon,
 } from '@heroicons/react/solid'
-import { BellIcon, FireIcon, HomeIcon, MenuIcon, TrendingUpIcon, UserGroupIcon, XIcon } from '@heroicons/react/outline'
+import { BellIcon, FireIcon, HomeIcon, MenuIcon, GlobeIcon, ShoppingBagIcon, CurrencyDollarIcon, AcademicCapIcon, ChartBarIcon, TrendingUpIcon, UserGroupIcon, XIcon } from '@heroicons/react/outline'
 
 const user = {
   name: 'Chelsea Hagon',
@@ -22,10 +22,12 @@ const user = {
 }
 const navigation = [
   { name: 'Home', href: '#', icon: HomeIcon, current: true },
-  { name: 'Continuum', href: '#', icon: FireIcon, current: false },
-  { name: 'Marketplace', href: '#', icon: UserGroupIcon, current: false },
-  { name: 'Exchange', href: '#', icon: UserGroupIcon, current: false },
+  { name: 'Continuum', href: '#', icon: GlobeIcon, current: false },
+  { name: 'Marketplace', href: '#', icon: ShoppingBagIcon, current: false },
+  { name: 'Staking', href: '#', icon: ChartBarIcon, current: false },
+  { name: 'Exchange', href: '#', icon: CurrencyDollarIcon, current: false },
   { name: 'Governance', href: '#', icon: UserGroupIcon, current: false },
+  { name: 'Learn', href: '#', icon: AcademicCapIcon, current: false },
 ]
 const userNavigation = [
   { name: 'Your Profile', href: '#' },
@@ -269,7 +271,7 @@ export default function Example() {
       </Popover>
 
       <div className="py-10">
-        <div className="max-w-3xl mx-auto sm:px-6 lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-12 lg:gap-8">
+        <div className="max-w-3xl mx-auto sm:px-6 lg:max-w-8xl lg:px-8 lg:grid lg:grid-cols-12 lg:gap-8">
           <div className="hidden lg:block lg:col-span-3 xl:col-span-2">
             <nav aria-label="Sidebar" className="sticky top-4 divide-y divide-gray-300">
               <div className="pb-8 space-y-1">
