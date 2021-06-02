@@ -24,7 +24,7 @@
   }
   ```
 */
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Menu, Dialog, Transition } from '@headlessui/react'
 import {
   ArchiveIcon,
@@ -57,6 +57,9 @@ import {
   ShareIcon,
   DotsVerticalIcon,
 } from '@heroicons/react/solid'
+import { useSubstrate } from './substrate-lib';
+import utils from './substrate-lib/utils';
+import { web3FromSource } from '@polkadot/extension-dapp';
 
 const navigation = [
     { name: 'Home', href: '#', icon: HomeIcon, current: true },
@@ -165,6 +168,138 @@ function classNames(...classes) {
 
 export default function Example() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const [accountAddress, setAccountAddress] = useState(null);
+  const [accountSelected, setAccountSelected] = useState('');
+  const [unsub, setUnsub] = useState(null);
+
+  const { api, apiState, keyring, keyringState, apiError } = useSubstrate();
+
+useEffect(() => {
+    // Get the list of accounts we possess the private key for
+    if (keyring) {
+        const keyringOptions = keyring.getPairs().map(account => ({
+            key: account.address,
+            value: account.address,
+            text: account.meta.name.toUpperCase(),
+            icon: 'user'
+        }));
+        
+        const initialAddress =
+            keyringOptions.length > 0 ? keyringOptions[0].value : '';
+            setAccountAddress(initialAddress);
+            setAccountSelected(initialAddress);
+    }
+  }, [keyring]);
+
+  const accountPair =
+    accountAddress &&
+    keyringState === 'READY' &&
+    keyring.getPair(accountAddress);
+
+  const getFromAcct = async () => {
+    const {
+      address,
+      meta: { source, isInjected }
+    } = accountPair;
+    let fromAcct;
+
+    // signer is from Polkadot-js browser extension
+    if (isInjected) {
+      const injected = await web3FromSource(source);
+      fromAcct = address;
+      api.setSigner(injected.signer);
+    } else {
+      fromAcct = accountPair;
+    }
+
+    return fromAcct;
+  };
+
+  const triggerExtrinsic = async () => {
+      const paramFields = [
+      {
+        "name": "name",
+        "type": "Bytes",
+        "optional": false
+    },
+      {
+        "name": "properties",
+        "type": "Bytes",
+        "optional": false
+    }]
+    const inputParams = [
+        {
+            "type": "Bytes",
+            "value": "test"
+        },
+        {
+            "type": "Bytes",
+            "value": "test"
+        }
+    ]
+      const fromAcct = await getFromAcct();
+      const transformed = transformParams(paramFields, inputParams);
+      // transformed can be empty parameters
+  
+      const txExecute =  api.tx.nftModule.createGroup(...transformed)
+  
+      const unsub = await txExecute.signAndSend(fromAcct, txResHandler)
+        .catch(txErrHandler);
+      setUnsub(() => unsub);
+  }
+
+
+  const txResHandler = ({ status }) =>
+    status.isFinalized
+      ? console.log(`😉 Finalized. Block hash: ${status.asFinalized.toString()}`)
+      : console.log(`Current transaction status: ${status.type}`);
+
+
+  const txErrHandler = err =>
+  console.log(`😞 Transaction Failed: ${err.toString()}`);
+
+  const isNumType = type =>
+    utils.paramConversion.num.some(el => type.indexOf(el) >= 0);
+
+
+
+  const transformParams = (paramFields, inputParams, opts = { emptyAsNull: true }) => {
+    // if `opts.emptyAsNull` is true, empty param value will be added to res as `null`.
+    //   Otherwise, it will not be added
+    const paramVal = inputParams.map(inputParam => {
+      // To cater the js quirk that `null` is a type of `object`.
+      if (typeof inputParam === 'object' && inputParam !== null && typeof inputParam.value === 'string') {
+        return inputParam.value.trim();
+      } else if (typeof inputParam === 'string') {
+        return inputParam.trim();
+      }
+      return inputParam;
+    });
+    const params = paramFields.map((field, ind) => ({ ...field, value: paramVal[ind] || null }));
+
+    return params.reduce((memo, { type = 'string', value }) => {
+      if (value == null || value === '') return (opts.emptyAsNull ? [...memo, null] : memo);
+
+      let converted = value;
+
+      // Deal with a vector
+      if (type.indexOf('Vec<') >= 0) {
+        converted = converted.split(',').map(e => e.trim());
+        converted = converted.map(single => isNumType(type)
+          ? (single.indexOf('.') >= 0 ? Number.parseFloat(single) : Number.parseInt(single))
+          : single
+        );
+        return [...memo, converted];
+      }
+
+      // Deal with a single value
+      if (isNumType(type)) {
+        converted = converted.indexOf('.') >= 0 ? Number.parseFloat(converted) : Number.parseInt(converted);
+      }
+      return [...memo, converted];
+    }, []);
+  };
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-100">
@@ -525,7 +660,7 @@ export default function Example() {
                       <div className="mt-6 flex justify-between space-x-8">
                         <div className="flex space-x-6">
                           <span className="inline-flex items-center text-sm">
-                            <button className="inline-flex space-x-2 text-gray-400 hover:text-gray-500">
+                            <button className="inline-flex space-x-2 text-gray-400 hover:text-gray-500" onClick={triggerExtrinsic}>
                               <ThumbUpIcon className="h-5 w-5" aria-hidden="true" />
                               <span className="font-medium text-gray-900">{question.likes}</span>
                               <span className="sr-only">likes</span>
