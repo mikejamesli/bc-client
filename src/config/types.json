@@ -91,7 +91,7 @@
     },
     "TokenSymbol": {
       "_enum": [
-        "BCG",
+        "NUUM",
         "AUSD",
         "ACA",
         "DOT"

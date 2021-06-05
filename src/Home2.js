@@ -58,8 +58,6 @@ import {
   DotsVerticalIcon,
 } from '@heroicons/react/solid'
 import { useSubstrate } from './substrate-lib';
-import utils from './substrate-lib/utils';
-import { web3FromSource } from '@polkadot/extension-dapp';
 
 const navigation = [
     { name: 'Home', href: '#', icon: HomeIcon, current: true },
@@ -166,68 +164,23 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example() {
+export default function Example({getFromAcct, transformParams}) {
+  const { api, apiState, keyring, keyringState, apiError } = useSubstrate();
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  const [accountAddress, setAccountAddress] = useState(null);
-  const [accountSelected, setAccountSelected] = useState('');
   const [unsub, setUnsub] = useState(null);
 
-  const { api, apiState, keyring, keyringState, apiError } = useSubstrate();
-
-useEffect(() => {
-    // Get the list of accounts we possess the private key for
-    if (keyring) {
-        const keyringOptions = keyring.getPairs().map(account => ({
-            key: account.address,
-            value: account.address,
-            text: account.meta.name.toUpperCase(),
-            icon: 'user'
-        }));
-        
-        const initialAddress =
-            keyringOptions.length > 0 ? keyringOptions[0].value : '';
-            setAccountAddress(initialAddress);
-            setAccountSelected(initialAddress);
-    }
-  }, [keyring]);
-
-  const accountPair =
-    accountAddress &&
-    keyringState === 'READY' &&
-    keyring.getPair(accountAddress);
-
-  const getFromAcct = async () => {
-    const {
-      address,
-      meta: { source, isInjected }
-    } = accountPair;
-    let fromAcct;
-
-    // signer is from Polkadot-js browser extension
-    if (isInjected) {
-      const injected = await web3FromSource(source);
-      fromAcct = address;
-      api.setSigner(injected.signer);
-    } else {
-      fromAcct = accountPair;
-    }
-
-    return fromAcct;
-  };
-
   const triggerExtrinsic = async () => {
-      const paramFields = [
-      {
-        "name": "name",
-        "type": "Bytes",
-        "optional": false
-    },
-      {
-        "name": "properties",
-        "type": "Bytes",
-        "optional": false
-    }]
+      let paramFields = ""
+    const metaArgs = api.tx.nftModule.createGroup.meta.args
+
+    if (metaArgs && metaArgs.length > 0) {
+      paramFields = metaArgs.map(arg => ({
+        name: arg.name.toString(),
+        type: arg.type.toString(),
+        optional: arg.type.toString().startsWith('Option<')
+      }));
+    }
+
     const inputParams = [
         {
             "type": "Bytes",
@@ -238,6 +191,7 @@ useEffect(() => {
             "value": "test"
         }
     ]
+
       const fromAcct = await getFromAcct();
       const transformed = transformParams(paramFields, inputParams);
       // transformed can be empty parameters
@@ -249,7 +203,6 @@ useEffect(() => {
       setUnsub(() => unsub);
   }
 
-
   const txResHandler = ({ status }) =>
     status.isFinalized
       ? console.log(`😉 Finalized. Block hash: ${status.asFinalized.toString()}`)
@@ -258,49 +211,7 @@ useEffect(() => {
 
   const txErrHandler = err =>
   console.log(`😞 Transaction Failed: ${err.toString()}`);
-
-  const isNumType = type =>
-    utils.paramConversion.num.some(el => type.indexOf(el) >= 0);
-
-
-
-  const transformParams = (paramFields, inputParams, opts = { emptyAsNull: true }) => {
-    // if `opts.emptyAsNull` is true, empty param value will be added to res as `null`.
-    //   Otherwise, it will not be added
-    const paramVal = inputParams.map(inputParam => {
-      // To cater the js quirk that `null` is a type of `object`.
-      if (typeof inputParam === 'object' && inputParam !== null && typeof inputParam.value === 'string') {
-        return inputParam.value.trim();
-      } else if (typeof inputParam === 'string') {
-        return inputParam.trim();
-      }
-      return inputParam;
-    });
-    const params = paramFields.map((field, ind) => ({ ...field, value: paramVal[ind] || null }));
-
-    return params.reduce((memo, { type = 'string', value }) => {
-      if (value == null || value === '') return (opts.emptyAsNull ? [...memo, null] : memo);
-
-      let converted = value;
-
-      // Deal with a vector
-      if (type.indexOf('Vec<') >= 0) {
-        converted = converted.split(',').map(e => e.trim());
-        converted = converted.map(single => isNumType(type)
-          ? (single.indexOf('.') >= 0 ? Number.parseFloat(single) : Number.parseInt(single))
-          : single
-        );
-        return [...memo, converted];
-      }
-
-      // Deal with a single value
-      if (isNumType(type)) {
-        converted = converted.indexOf('.') >= 0 ? Number.parseFloat(converted) : Number.parseInt(converted);
-      }
-      return [...memo, converted];
-    }, []);
-  };
-
+ 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-100">
       <Transition.Root show={sidebarOpen} as={Fragment}>
